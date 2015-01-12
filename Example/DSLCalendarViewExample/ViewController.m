@@ -1,10 +1,5 @@
 //
 //  ViewController.m
-//  WBCalender
-//
-//  Created by Amol Chavan on 14/10/14.
-//  Copyright (c) 2014 Mansi Technologies Pvt. Ltd. All rights reserved.
-//
 
 #import "ViewController.h"
 #import "DSLCalendarView.h"
