@@ -39,8 +39,8 @@
 
 
 @implementation DSLCalendarRange {
-    __strong NSDate *_startDate;
-    __strong NSDate *_endDate;
+    //    __strong NSDate *_startDate;
+    //    __strong NSDate *_endDate;
 }
 
 
@@ -50,34 +50,56 @@
 
 #pragma mark - Initialisation
 
-// Designated initialiser
-- (id)initWithStartDay:(NSDateComponents *)start endDay:(NSDateComponents *)end {
-    NSParameterAssert(start);
-    NSParameterAssert(end);
-    
+-(id)init {
     self = [super init];
     if (self != nil) {
-        // Initialise properties
-        _startDay = [start copy];
-        _startDate = [start date];
-        _endDay = [end copy];
-        _endDate = [end date];
+        _selectedDays = [NSMutableArray new];
     }
-
     return self;
 }
 
-
-#pragma mark - Properties
-
-- (void)setStartDay:(NSDateComponents *)startDay {
-    NSParameterAssert(startDay);
-    _startDay = [startDay copy];
+- (id)initWithDay:(NSDateComponents*)day {
+    self = [super init];
+    if (self != nil) {
+        _selectedDays = [NSMutableArray new];
+        [self selectDay:day];
+    }
+    return self;
 }
 
-- (void)setEndDay:(NSDateComponents *)endDay {
-    NSParameterAssert(endDay);
-    _endDay = [endDay copy];
+- (id)initWithDate:(NSDate *)date {
+    self = [super init];
+    if (self != nil) {
+        _selectedDays = [NSMutableArray new];
+        [self selectDate:date];
+    }
+    return self;
+}
+
+- (id)initWithDateArray:(NSArray *)array {
+    self = [super init];
+    if (self != nil) {
+        _selectedDays = [NSMutableArray arrayWithArray:array];
+    }
+    return self;
+}
+
+#pragma mark - Selection
+
+- (void)selectDay:(NSDateComponents *)day {
+    [self selectDate:day.date];
+}
+
+- (void)deSelectDay:(NSDateComponents *)day {
+    [self deSelectDate:day.date];
+}
+
+- (void)selectDate:(NSDate *)day {
+    [_selectedDays addObject:day];
+}
+
+- (void)deSelectDate:(NSDate *)day {
+    [_selectedDays removeObject:day];
 }
 
 
@@ -88,14 +110,19 @@
 }
 
 - (BOOL)containsDate:(NSDate*)date {
-    if ([_startDate compare:date] == NSOrderedDescending) {
-        return NO;
-    }
-    else if ([_endDate compare:date] == NSOrderedAscending) {
-        return NO;
-    }
     
-    return YES;
+    for (NSDate *selectedDate in _selectedDays) {
+        if ([selectedDate compare:date] == NSOrderedSame) {
+            return YES;
+            break;
+        }
+    }
+    return NO;
 }
 
+-(void)printSelectedDays:(NSMutableArray *)selectedDays{
+    for (int i=0; i<[selectedDays count]; i++) {
+        NSLog(@"%@",[selectedDays objectAtIndex:i]);
+    }
+}
 @end
