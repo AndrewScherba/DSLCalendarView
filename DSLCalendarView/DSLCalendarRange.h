@@ -33,13 +33,21 @@
 
 @interface DSLCalendarRange : NSObject
 
-@property (nonatomic, copy) NSDateComponents *startDay;
-@property (nonatomic, copy) NSDateComponents *endDay;
+@property (nonatomic, copy) NSMutableArray *selectedDays;
 
 // Designated initialiser
-- (id)initWithStartDay:(NSDateComponents*)start endDay:(NSDateComponents*)end;
+- (id)initWithDay:(NSDateComponents*)day;
+- (id)initWithDate:(NSDate *)date;
+- (id)initWithDateArray:(NSArray *)array;
 
+// Selection
+- (void)selectDay:(NSDateComponents *)day;
+- (void)deSelectDay:(NSDateComponents *)day;
+- (void)selectDate:(NSDate *)day;
+- (void)deSelectDate:(NSDate *)day;
+
+//Check
 - (BOOL)containsDay:(NSDateComponents*)day;
 - (BOOL)containsDate:(NSDate*)date;
-
+-(void)printSelectedDays:(NSMutableArray*)selectedDays;
 @end
