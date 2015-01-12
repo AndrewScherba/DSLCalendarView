@@ -54,6 +54,12 @@
 @protocol DSLCalendarViewDelegate <NSObject>
 
 @optional
+- (BOOL)calendarView:(DSLCalendarView *)calendarView shouldSelectDate:(NSDateComponents*)date;
+- (BOOL)calendarView:(DSLCalendarView *)calendarView shouldDeselectDate:(NSDateComponents*)date;
+
+- (void)calendarView:(DSLCalendarView *)calendarView didSelectDate:(NSDateComponents*)date;
+- (void)calendarView:(DSLCalendarView *)calendarView didDeselectDate:(NSDateComponents*)date;
+
 - (void)calendarView:(DSLCalendarView*)calendarView didSelectRange:(DSLCalendarRange*)range;
 - (void)calendarView:(DSLCalendarView *)calendarView willChangeToVisibleMonth:(NSDateComponents*)month duration:(NSTimeInterval)duration;
 - (void)calendarView:(DSLCalendarView *)calendarView didChangeToVisibleMonth:(NSDateComponents*)month;
