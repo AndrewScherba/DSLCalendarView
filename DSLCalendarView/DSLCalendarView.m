@@ -41,9 +41,9 @@
 @interface DSLCalendarView ()
 
 @property (nonatomic, strong) DSLCalendarDayCalloutView *dayCalloutView;
-@property (nonatomic, copy) NSDateComponents *draggingFixedDay;
-@property (nonatomic, copy) NSDateComponents *draggingStartDay;
-@property (nonatomic, assign) BOOL draggedOffStartDay;
+//@property (nonatomic, copy) NSDateComponents *draggingFixedDay;
+//@property (nonatomic, copy) NSDateComponents *draggingStartDay;
+//@property (nonatomic, assign) BOOL draggedOffStartDay;
 
 @property (nonatomic, strong) NSMutableDictionary *monthViews;
 @property (nonatomic, strong) UIView *monthContainerView;
@@ -88,7 +88,7 @@
 - (void)commonInit {
     _dayViewHeight = 44;
     
-    _visibleMonth = [[NSCalendar currentCalendar] components:NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit | NSWeekdayCalendarUnit | NSCalendarCalendarUnit fromDate:[NSDate date]];
+    _visibleMonth = [[NSCalendar currentCalendar] components:NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay | NSCalendarUnitWeekday | NSCalendarUnitCalendar fromDate:[NSDate date]];
     _visibleMonth.day = 1;
     
     _showDayCalloutView = YES;
@@ -142,13 +142,6 @@
     }
 }
 
-- (void)setDraggingStartDay:(NSDateComponents *)draggingStartDay {
-    _draggingStartDay = [draggingStartDay copy];
-    if (draggingStartDay == nil) {
-        [self.dayCalloutView removeFromSuperview];
-    }
-}
-
 - (NSDateComponents*)visibleMonth {
     return [_visibleMonth copy];
 }
@@ -194,12 +187,12 @@
 }
 
 - (NSString*)monthViewKeyForMonth:(NSDateComponents*)month {
-    month = [month.calendar components:NSYearCalendarUnit | NSMonthCalendarUnit fromDate:month.date];
+    month = [month.calendar components:NSCalendarUnitYear | NSCalendarUnitMonth fromDate:month.date];
     return [NSString stringWithFormat:@"%ld.%ld", (long)month.year, (long)month.month];
 }
 
 - (DSLCalendarMonthView*)cachedOrCreatedMonthViewForMonth:(NSDateComponents*)month {
-    month = [month.calendar components:NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit | NSWeekdayCalendarUnit | NSCalendarCalendarUnit fromDate:month.date];
+    month = [month.calendar components:NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay | NSCalendarUnitWeekday | NSCalendarUnitCalendar fromDate:month.date];
 
     NSString *monthViewKey = [self monthViewKeyForMonth:month];
     DSLCalendarMonthView *monthView = [self.monthViews objectForKey:monthViewKey];
@@ -232,7 +225,7 @@
     for (NSInteger monthOffset = -2; monthOffset <= 2; monthOffset += 1) {
         NSDateComponents *offsetMonth = [month copy];
         offsetMonth.month = offsetMonth.month + monthOffset;
-        offsetMonth = [offsetMonth.calendar components:NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit | NSWeekdayCalendarUnit | NSCalendarCalendarUnit fromDate:offsetMonth.date];
+        offsetMonth = [offsetMonth.calendar components:NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay | NSCalendarUnitWeekday | NSCalendarUnitCalendar fromDate:offsetMonth.date];
         
         // Check if this month should overlap the previous month
         if (![self monthStartsOnFirstDayOfWeek:offsetMonth]) {
@@ -307,7 +300,7 @@
     }
     
     self.userInteractionEnabled = NO;
-    [UIView animateWithDuration:animationDuration delay:0.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+    [UIView animateWithDuration:animationDuration delay:0.0 options:UIViewAnimationOptionTransitionNone animations:^{
         for (NSInteger index = 0; index < activeMonthViews.count; index++) {
             DSLCalendarMonthView *monthView = [activeMonthViews objectAtIndex:index];
              for (DSLCalendarDayView *dayView in monthView.dayViews) {
@@ -351,7 +344,7 @@
 
 - (BOOL)monthStartsOnFirstDayOfWeek:(NSDateComponents*)month {
     // Make sure we have the components we need to do the calculation
-    month = [month.calendar components:NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit | NSWeekdayCalendarUnit | NSCalendarCalendarUnit fromDate:month.date];
+    month = [month.calendar components:NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay | NSCalendarUnitWeekday | NSCalendarUnitCalendar fromDate:month.date];
     
     return (month.weekday - month.calendar.firstWeekday == 0);
 }
@@ -359,88 +352,49 @@
 
 #pragma mark - Touches
 
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-    DSLCalendarDayView *touchedView = [self dayViewForTouches:touches];
-    if (touchedView == nil) {
-        self.draggingStartDay = nil;
-        return;
-    }
-    
-    self.draggingStartDay = touchedView.day;
-    self.draggingFixedDay = touchedView.day;
-    self.draggedOffStartDay = NO;
-    
-    DSLCalendarRange *newRange = self.selectedRange;
-    if (self.selectedRange == nil) {
-        newRange = [[DSLCalendarRange alloc] initWithStartDay:touchedView.day endDay:touchedView.day];
-    }
-    else if (![self.selectedRange.startDay isEqual:touchedView.day] && ![self.selectedRange.endDay isEqual:touchedView.day]) {
-        newRange = [[DSLCalendarRange alloc] initWithStartDay:touchedView.day endDay:touchedView.day];
-    }
-    else if ([self.selectedRange.startDay isEqual:touchedView.day]) {
-        self.draggingFixedDay = self.selectedRange.endDay;
-    }
-    else {
-        self.draggingFixedDay = self.selectedRange.startDay;
-    }
-    
-    if ([self.delegate respondsToSelector:@selector(calendarView:didDragToDay:selectingRange:)]) {
-        newRange = [self.delegate calendarView:self didDragToDay:touchedView.day selectingRange:newRange];
-    }
-    self.selectedRange = newRange;
-    
-    [self positionCalloutViewForDayView:touchedView];
-}
-
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
-    if (self.draggingStartDay == nil) {
-        return;
-    }
-    
-    DSLCalendarDayView *touchedView = [self dayViewForTouches:touches];
-    if (touchedView == nil) {
-        self.draggingStartDay = nil;
-        return;
-    }
-    
-    DSLCalendarRange *newRange;
-    if ([touchedView.day.date compare:self.draggingFixedDay.date] == NSOrderedAscending) {
-        newRange = [[DSLCalendarRange alloc] initWithStartDay:touchedView.day endDay:self.draggingFixedDay];
-    }
-    else {
-        newRange = [[DSLCalendarRange alloc] initWithStartDay:self.draggingFixedDay endDay:touchedView.day];
-    }
-
-    if ([self.delegate respondsToSelector:@selector(calendarView:didDragToDay:selectingRange:)]) {
-        newRange = [self.delegate calendarView:self didDragToDay:touchedView.day selectingRange:newRange];
-    }
-    self.selectedRange = newRange;
-
-    if (!self.draggedOffStartDay) {
-        if (![self.draggingStartDay isEqual:touchedView.day]) {
-            self.draggedOffStartDay = YES;
-        }
-    }
-
-    [self positionCalloutViewForDayView:touchedView];
-}
-
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-    if (self.draggingStartDay == nil) {
-        return;
-    }
     
     DSLCalendarDayView *touchedView = [self dayViewForTouches:touches];
     if (touchedView == nil) {
-        self.draggingStartDay = nil;
         return;
     }
     
-    if (!self.draggedOffStartDay && [self.draggingStartDay isEqual:touchedView.day]) {
-        self.selectedRange = [[DSLCalendarRange alloc] initWithStartDay:touchedView.day endDay:touchedView.day];
+    DSLCalendarRange *selectedRange = self.selectedRange ? self.selectedRange : [[DSLCalendarRange alloc] init];
+    if ([selectedRange containsDay:touchedView.day]) {
+        
+        BOOL deselectDate = YES;
+        if ([self.delegate respondsToSelector:@selector(calendarView:shouldDeselectDate:)]) {
+            deselectDate = [self.delegate calendarView:self shouldDeselectDate:touchedView.day];
+        }
+        
+        if (deselectDate) {
+            [selectedRange deSelectDay:touchedView.day];
+            
+            if ([self.delegate respondsToSelector:@selector(calendarView:didDeselectDate:)]) {
+                [self.delegate calendarView:self didDeselectDate:touchedView.day];
+            }
+        }
+        
+    } else {
+        
+        BOOL selectDate = YES;
+        if ([self.delegate respondsToSelector:@selector(calendarView:shouldSelectDate:)]) {
+            selectDate = [self.delegate calendarView:self shouldSelectDate:touchedView.day];
+        }
+        
+        if (selectDate) {
+            [selectedRange selectDay:touchedView.day];
+            
+            if ([self.delegate respondsToSelector:@selector(calendarView:didSelectDate:)]) {
+                [self.delegate calendarView:self didSelectDate:touchedView.day];
+            }
+        }
+        
+        
     }
     
-    self.draggingStartDay = nil;
+    self.selectedRange = selectedRange;
+    
     
     // Check if the user has dragged to a day in an adjacent month
     if (touchedView.day.year != _visibleMonth.year || touchedView.day.month != _visibleMonth.month) {
@@ -518,7 +472,7 @@
         [self.dayCalloutView configureForDay:dayView.day];
         
         if (self.dayCalloutView.superview == nil) {
-            [self addSubview:self.dayCalloutView];
+//            [self addSubview:self.dayCalloutView];     //amolchavan
         }
         else {
             [self bringSubviewToFront:self.dayCalloutView];
