@@ -83,7 +83,7 @@
     NSDate *firstDate = [day.calendar dateFromComponents:day];
     day = [firstDate dslCalendarView_dayWithCalendar:self.month.calendar];
 
-    NSInteger numberOfDaysInMonth = [day.calendar rangeOfUnit:NSDayCalendarUnit inUnit:NSMonthCalendarUnit forDate:[day date]].length;
+    NSInteger numberOfDaysInMonth = [day.calendar rangeOfUnit:NSCalendarUnitDay inUnit:NSCalendarUnitMonth forDate:[day date]].length;
 
     NSInteger startColumn = day.weekday - day.calendar.firstWeekday;
     if (startColumn < 0) {
@@ -145,21 +145,22 @@
 - (void)updateDaySelectionStatesForRange:(DSLCalendarRange*)range {
     for (DSLCalendarDayView *dayView in self.dayViews) {
         if ([range containsDate:dayView.dayAsDate]) {
-            BOOL isStartOfRange = [range.startDay isEqual:dayView.day];
-            BOOL isEndOfRange = [range.endDay isEqual:dayView.day];
+//            BOOL isStartOfRange = [range.startDay isEqual:dayView.day];
+//            BOOL isEndOfRange = [range.endDay isEqual:dayView.day];
             
-            if (isStartOfRange && isEndOfRange) {
-                dayView.selectionState = DSLCalendarDayViewWholeSelection;
-            }
-            else if (isStartOfRange) {
-                dayView.selectionState = DSLCalendarDayViewStartOfSelection;
-            }
-            else if (isEndOfRange) {
-                dayView.selectionState = DSLCalendarDayViewEndOfSelection;
-            }
-            else {
-                dayView.selectionState = DSLCalendarDayViewWithinSelection;
-            }
+//            if (isStartOfRange && isEndOfRange) {
+//                
+//            }
+//            else if (isStartOfRange) {
+//                dayView.selectionState = DSLCalendarDayViewStartOfSelection;
+//            }
+//            else if (isEndOfRange) {
+//                dayView.selectionState = DSLCalendarDayViewEndOfSelection;
+//            }
+//            else {
+//                dayView.selectionState = DSLCalendarDayViewWithinSelection;
+//            }
+            dayView.selectionState = DSLCalendarDayViewWholeSelection;
         }
         else {
             dayView.selectionState = DSLCalendarDayViewNotSelected;
